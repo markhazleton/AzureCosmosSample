@@ -1,6 +1,6 @@
-﻿using CosmosFamily.Models;
+﻿using CosmosFamily.Domain.Models;
 
-namespace CosmosFamily.Services;
+namespace CosmosFamily.Domain.Services;
 public static class FamilyHelper
 {
 

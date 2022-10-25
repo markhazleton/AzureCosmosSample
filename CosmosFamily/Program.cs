@@ -1,11 +1,14 @@
-﻿using CosmosFamily.Services;
+﻿using CosmosFamily.Domain.Models;
+using CosmosFamily.Domain.Services;
+using CosmosFamily.Services;
 using Microsoft.Azure.Cosmos;
-
 
 try
 {
     Console.WriteLine("Beginning operations...\n");
-    CosmosService p = new();
+    var secretReader = new SecretsReader();
+    var cosmosDbSettings = secretReader.ReadSection<CosmosDb>("CosmosDb");
+    CosmosService p = new(cosmosDbSettings);
     await p.GetStartedDemoAsync();
 }
 catch (CosmosException de)

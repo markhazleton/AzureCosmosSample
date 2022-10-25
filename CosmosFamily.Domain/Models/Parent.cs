@@ -1,5 +1,5 @@
 ﻿
-namespace CosmosFamily.Models;
+namespace CosmosFamily.Domain.Models;
 
 public class Parent
 {

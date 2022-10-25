@@ -1,10 +1,10 @@
-﻿using CosmosFamily.Models;
+﻿using CosmosFamily.Domain.Models;
 using Microsoft.Azure.Cosmos;
 using System.Net;
 
-namespace CosmosFamily.Services;
+namespace CosmosFamily.Domain.Services;
 
-class CosmosService
+public class CosmosService
 {
     // The Azure Cosmos DB endpoint for running this sample.
     // private static readonly string EndpointUri = ConfigurationManager.AppSettings["EndPointUri"];
@@ -25,10 +25,8 @@ class CosmosService
     private readonly string databaseId = "FamilyList";
     private readonly string containerId = "Items";
 
-    public CosmosService()
+    public CosmosService(CosmosDb cosmosDbSettings)
     {
-        var secretReader = new SecretsReader();
-        var cosmosDbSettings = secretReader.ReadSection<CosmosDb>("CosmosDb");
         this.databaseId = cosmosDbSettings.DatabaseId;
         this.containerId = cosmosDbSettings.ContainerId;
         this.cosmosClient = new CosmosClient(
@@ -128,8 +126,8 @@ class CosmosService
         try
         {
             // Read the item to see if it exists.  
-            ItemResponse<Family> andersenFamilyResponse = await this.container.ReadItemAsync<Family>(hazletonFamily.Id, new PartitionKey(hazletonFamily.PartitionKey));
-            Console.WriteLine($"Item in database with id: {andersenFamilyResponse.Resource.Id} already exists\n");
+            ItemResponse<Family> hazletonFamilyResponse = await this.container.ReadItemAsync<Family>(hazletonFamily.Id, new PartitionKey(hazletonFamily.PartitionKey));
+            Console.WriteLine($"Item in database with id: {hazletonFamilyResponse.Resource.Id} already exists\n");
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -140,9 +138,9 @@ class CosmosService
             Console.WriteLine($"Created item in database with id: {andersenFamilyResponse.Resource.Id} Operation consumed {andersenFamilyResponse.RequestCharge} RUs.\n");
         }
 
-        // Create a family object for the Wakefield family
-        Family wakefieldFamily = FamilyHelper.CreateWakefieldFamily();
 
+        // Create a family object for the Wakefield family
+        var wakefieldFamily = FamilyHelper.CreateWakefieldFamily();
         try
         {
             // Read the item to see if it exists
@@ -170,8 +168,8 @@ class CosmosService
     /// </summary>
     private async Task QueryItemsAsync()
     {
-        var sqlQueryText = "SELECT * FROM c WHERE c.PartitionKey = 'Hazleton' ";
-        // var sqlQueryText = "SELECT * FROM c ";
+        //var sqlQueryText = "SELECT * FROM c WHERE c.PartitionKey = 'Hazleton' ";
+        var sqlQueryText = "SELECT * FROM c ";
 
         Console.WriteLine($"Running query: {sqlQueryText}\n");
 
@@ -198,8 +196,8 @@ class CosmosService
     /// </summary>
     private async Task ReplaceFamilyItemAsync()
     {
-        ItemResponse<Family> wakefieldFamilyResponse = await this.container.ReadItemAsync<Family>("Wakefield.7", new PartitionKey("Wakefield"));
-        var itemBody = wakefieldFamilyResponse.Resource;
+        ItemResponse<Family> hazletonFamilyResponse = await this.container.ReadItemAsync<Family>("Hazleton.1", new PartitionKey("Hazleton"));
+        var itemBody = hazletonFamilyResponse.Resource;
 
         // update registration status from false to true
         itemBody.IsRegistered = true;
@@ -207,8 +205,8 @@ class CosmosService
         itemBody.Children[0].Grade = 6;
 
         // replace the item with the updated content
-        wakefieldFamilyResponse = await this.container.ReplaceItemAsync<Family>(itemBody, itemBody.Id, new PartitionKey(itemBody.PartitionKey));
-        Console.WriteLine($"Updated Family [{itemBody.LastName},{itemBody.Id}].\n \tBody is now: {wakefieldFamilyResponse.Resource}\n");
+        hazletonFamilyResponse = await this.container.ReplaceItemAsync<Family>(itemBody, itemBody.Id, new PartitionKey(itemBody.PartitionKey));
+        Console.WriteLine($"Updated Family [{itemBody.LastName},{itemBody.Id}].\n \tBody is now: {hazletonFamilyResponse.Resource}\n");
     }
     // </ReplaceFamilyItemAsync>
 
